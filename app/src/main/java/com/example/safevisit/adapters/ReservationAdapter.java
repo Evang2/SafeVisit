@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -21,6 +22,7 @@ import com.journeyapps.barcodescanner.BarcodeEncoder;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.ViewHolder> {
 
@@ -51,27 +53,33 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
         holder.time.setText("Time: " + reservation.time);
         holder.people.setText("People: " + reservation.peopleCount);
 
-        holder.itemView.setOnClickListener(v -> showQRCodeDialog(reservation.qrCode));
+        holder.itemView.setOnClickListener(v -> showQRCodeDialog(v.getContext(), reservation.qrCode));
     }
 
-    private void showQRCodeDialog(String qrCodeText) {
+    private void showQRCodeDialog(Context context, String qrCodeText) {
         try {
             BarcodeEncoder encoder = new BarcodeEncoder();
-            Bitmap bitmap = encoder.encodeBitmap(qrCodeText, BarcodeFormat.QR_CODE, 500, 500);
+            Bitmap bitmap = encoder.encodeBitmap(qrCodeText, BarcodeFormat.QR_CODE, 600, 600);
 
-            ImageView qrView = new ImageView(context);
-            qrView.setImageBitmap(bitmap);
+            View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_qr_code, null);
+            ImageView qrImage = dialogView.findViewById(R.id.qrImage);
+            qrImage.setImageBitmap(bitmap);
 
-            new AlertDialog.Builder(context)
-                    .setTitle("Reservation QR Code")
-                    .setView(qrView)
+            AlertDialog dialog = new AlertDialog.Builder(context)
+                    .setView(dialogView)
                     .setPositiveButton("Close", null)
-                    .show();
+                    .create();
+
+            Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
+            dialog.show();
 
         } catch (WriterException e) {
             e.printStackTrace();
+            Toast.makeText(context, "Failed to generate QR code", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     @Override
     public int getItemCount() {

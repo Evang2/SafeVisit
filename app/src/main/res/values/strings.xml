@@ -28,6 +28,10 @@
     <string name="restaurant_name">Restaurant Name</string>
     <string name="description">Description</string>
     <string name="make_reservation">Make Reservation</string>
-    <string name="loading_weather">Loading weather...</string>
-    <string name="restaurant_description_here">Restaurant description here...</string>
+    <string name="loading_weather">Loading weather…</string>
+    <string name="restaurant_description_here">Restaurant description here…</string>
+    <string name="scan_qr">Scan QR</string>
+    <string name="logout">Logout</string>
+    <string name="select_date">   Select Date</string>
+    <string name="select_time">   Select Time</string>
 </resources>

@@ -1,13 +1,12 @@
 package com.example.safevisit.fragments;
 
-import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.Toast;
 
@@ -20,16 +19,27 @@ import com.example.safevisit.R;
 import com.example.safevisit.data.AppDatabase;
 import com.example.safevisit.data.entities.Reservation;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.WriterException;
+import com.journeyapps.barcodescanner.BarcodeEncoder;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.TimeZone;
 
 public class CreateReservationFragment extends Fragment {
 
     private TextInputEditText dateEditText, timeEditText, peopleEditText;
     private int userId;
     private int restaurantId;
+    private int selectedPeopleCount = 1;
 
     @Nullable
     @Override
@@ -50,16 +60,61 @@ public class CreateReservationFragment extends Fragment {
 
         AppDatabase db = AppDatabase.getInstance(requireContext().getApplicationContext());
 
-        // Date picker
-        dateEditText.setOnClickListener(v -> showDatePicker());
+        // 🗓️ Material Date Picker
+        dateEditText.setOnClickListener(v -> {
+            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Select reservation date")
+                    .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                    .build();
 
-        // Time picker
-        timeEditText.setOnClickListener(v -> showTimePicker());
+            datePicker.addOnPositiveButtonClickListener(selection -> {
+                Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                calendar.setTimeInMillis(selection);
+                String formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+                dateEditText.setText(formattedDate);
+            });
 
-        // Number picker
-        peopleEditText.setOnClickListener(v -> showPeoplePicker());
+            datePicker.show(getParentFragmentManager(), "date_picker");
+        });
 
-        // Submit reservation
+        // 🕒 Material Time Picker
+        timeEditText.setOnClickListener(v -> {
+            MaterialTimePicker picker = new MaterialTimePicker.Builder()
+                    .setTimeFormat(TimeFormat.CLOCK_24H)
+                    .setTitleText("Select reservation time")
+                    .setHour(12)
+                    .setMinute(0)
+                    .build();
+
+            picker.addOnPositiveButtonClickListener(dialog -> {
+                String formattedTime = String.format(Locale.getDefault(), "%02d:%02d", picker.getHour(), picker.getMinute());
+                timeEditText.setText(formattedTime);
+            });
+
+            picker.show(getParentFragmentManager(), "time_picker");
+        });
+
+        // 👥 People Picker using Material AlertDialog
+        peopleEditText.setOnClickListener(v -> {
+            View pickerView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_people_picker, null);
+            NumberPicker numberPicker = pickerView.findViewById(R.id.numberPicker);
+            numberPicker.setMinValue(1);
+            numberPicker.setMaxValue(20);
+            numberPicker.setValue(selectedPeopleCount);
+
+            new AlertDialog.Builder(requireContext(), R.style.NumberPickerStyle)
+                    .setTitle("Select number of people")
+                    .setView(pickerView)
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        selectedPeopleCount = numberPicker.getValue();
+                        peopleEditText.setText(String.valueOf(selectedPeopleCount));
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
+        });
+
+
+        // 📅 Submit reservation
         submitButton.setOnClickListener(v -> {
             String date = Objects.requireNonNull(dateEditText.getText()).toString().trim();
             String time = Objects.requireNonNull(timeEditText.getText()).toString().trim();
@@ -71,7 +126,7 @@ public class CreateReservationFragment extends Fragment {
             }
 
             int people = Integer.parseInt(peopleStr);
-            String qrCode = "QR-" + System.currentTimeMillis();
+            String qrCodeText = "QR-" + System.currentTimeMillis();
 
             Reservation reservation = new Reservation();
             reservation.userId = userId;
@@ -79,18 +134,15 @@ public class CreateReservationFragment extends Fragment {
             reservation.date = date;
             reservation.time = time;
             reservation.peopleCount = people;
-            reservation.qrCode = qrCode;
+            reservation.qrCode = qrCodeText;
 
             new Thread(() -> {
                 db.reservationDao().insert(reservation);
-                requireActivity().runOnUiThread(() -> {
-                    Toast.makeText(getContext(), "Reservation saved!", Toast.LENGTH_SHORT).show();
 
-                    // Show QR code screen
-                    requireActivity().getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.fragment_container, ShowQrFragment.newInstance(qrCode))
-                            .addToBackStack(null)
-                            .commit();
+                requireActivity().runOnUiThread(() -> {
+                    showQRCodeDialog(qrCodeText);
+                    Toast.makeText(getContext(), "Reservation saved!", Toast.LENGTH_SHORT).show();
+                    requireActivity().getSupportFragmentManager().popBackStack();
                 });
             }).start();
         });
@@ -98,49 +150,25 @@ public class CreateReservationFragment extends Fragment {
         return view;
     }
 
-    private void showDatePicker() {
-        Calendar calendar = Calendar.getInstance();
-        new DatePickerDialog(requireContext(),
-                (view, year, month, dayOfMonth) -> {
-                    @SuppressLint("DefaultLocale")
-                    String dateStr = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
-                    dateEditText.setText(dateStr);
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-        ).show();
-    }
+    private void showQRCodeDialog(String qrCodeText) {
+        try {
+            BarcodeEncoder encoder = new BarcodeEncoder();
+            Bitmap bitmap = encoder.encodeBitmap(qrCodeText, BarcodeFormat.QR_CODE, 600, 600);
 
-    private void showTimePicker() {
-        Calendar calendar = Calendar.getInstance();
-        new TimePickerDialog(requireContext(),
-                (view, hourOfDay, minute) -> {
-                    @SuppressLint("DefaultLocale")
-                    String timeStr = String.format("%02d:%02d", hourOfDay, minute);
-                    timeEditText.setText(timeStr);
-                },
-                calendar.get(Calendar.HOUR_OF_DAY),
-                calendar.get(Calendar.MINUTE),
-                true
-        ).show();
-    }
+            ImageView qrImage = new ImageView(requireContext());
+            qrImage.setImageBitmap(bitmap);
+            int padding = (int) getResources().getDimension(R.dimen.padding_large);
+            qrImage.setPadding(padding, padding, padding, padding);
 
-    private void showPeoplePicker() {
-        NumberPicker numberPicker = new NumberPicker(requireContext());
-        numberPicker.setMinValue(1);
-        numberPicker.setMaxValue(20);
-        numberPicker.setWrapSelectorWheel(true);
+            new MaterialAlertDialogBuilder(requireContext(), R.style.RoundedQRDialog)
+                    .setTitle("Your Reservation QR Code")
+                    .setView(qrImage)
+                    .setPositiveButton("Close", null)
+                    .show();
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Select number of people");
-        builder.setView(numberPicker);
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            int selected = numberPicker.getValue();
-            peopleEditText.setText(String.valueOf(selected));
-        });
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+        } catch (WriterException e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Failed to generate QR code", Toast.LENGTH_SHORT).show();
+        }
     }
 }
-

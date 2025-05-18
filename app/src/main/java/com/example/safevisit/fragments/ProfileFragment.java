@@ -1,5 +1,6 @@
 package com.example.safevisit.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -12,6 +13,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.safevisit.R;
+import com.example.safevisit.activities.LoginActivity;
+import com.example.safevisit.activities.QRScannerActivity;
 import com.example.safevisit.data.AppDatabase;
 import com.example.safevisit.data.entities.User;
 import com.google.android.material.button.MaterialButton;
@@ -35,8 +38,9 @@ public class ProfileFragment extends Fragment {
         emailEdit = view.findViewById(R.id.emailEdit);
         passwordEdit = view.findViewById(R.id.passwordEdit);
         MaterialButton updateProfileBtn = view.findViewById(R.id.updateProfileBtn);
+        MaterialButton logoutButton = view.findViewById(R.id.logoutButton);
+        MaterialButton qrScannerButton = view.findViewById(R.id.qrScannerButton);
 
-        // Get the userId from the activity intent
         if (getActivity() != null && getActivity().getIntent() != null) {
             userId = getActivity().getIntent().getIntExtra("userId", -1);
         }
@@ -81,6 +85,17 @@ public class ProfileFragment extends Fragment {
                         Toast.makeText(getContext(), "Profile updated", Toast.LENGTH_SHORT).show()
                 );
             }).start();
+        });
+
+        logoutButton.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
+
+        qrScannerButton.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), QRScannerActivity.class);
+            startActivity(intent);
         });
 
         return view;
