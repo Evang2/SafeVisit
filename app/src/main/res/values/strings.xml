@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">SafeVisit</string>
+    <string name="log_in">LOG IN</string>
+    <string name="login_with_biometrics">Login with Biometrics</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="don_t_have_an_account_sign_up">Don\'t have an account? Sign up</string>
+    <string name="todo">TODO</string>
+    <string name="create_account">Create Account</string>
+    <string name="username">Username</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="search_restaurant">Search restaurant</string>
+    <string name="date_yyyy_mm_dd">Date (YYYY-MM-DD)</string>
+    <string name="time_hh_mm">Time (HH:MM)</string>
+    <string name="number_of_people">Number of People</string>
+    <string name="book_now">Book Now</string>
+    <string name="upcoming_reservations">Upcoming Reservations</string>
+    <string name="past_reservations">Past Reservations</string>
+    <string name="profile_settings">Profile Settings</string>
+    <string name="update_profile">Update Profile</string>
+    <string name="weather_info">Weather Info</string>
+    <string name="fetching_weather">Fetching weather…</string>
+    <string name="reservation_details">Reservation Details</string>
+    <string name="date">Date: -</string>
+    <string name="time">Time: -</string>
+    <string name="people">People: -</string>
+    <string name="search">Search</string>
+    <string name="restaurant_name">Restaurant Name</string>
+    <string name="description">Description</string>
+    <string name="make_reservation">Make Reservation</string>
+    <string name="loading_weather">Loading weather...</string>
+    <string name="restaurant_description_here">Restaurant description here...</string>
+</resources>
