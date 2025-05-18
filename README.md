@@ -65,6 +65,8 @@
 3. Run on emulator or connected device.
 4. Done! 🎉
 
+### or
+- 📱 [Download SafeVisit APK](https://drive.google.com/file/d/1RvTp4ITrbZbnprvU590U40IpjAUcJDz5/view?usp=sharing)
 ---
 
 
