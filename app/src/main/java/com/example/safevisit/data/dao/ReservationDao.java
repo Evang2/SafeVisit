@@ -18,9 +18,10 @@ public interface ReservationDao {
     @Delete
     void delete(Reservation reservation);
 
-    @Query("SELECT * FROM reservations WHERE userId = :userId AND date >= :todayDate ORDER BY date ASC")
-    List<Reservation> getUpcomingReservations(int userId, String todayDate);
+    @Query("SELECT * FROM reservations WHERE userId = :userId AND (date || ' ' || time) >= :now ORDER BY date, time ASC")
+    List<Reservation> getUpcomingReservations(int userId, String now);
 
-    @Query("SELECT * FROM reservations WHERE userId = :userId AND date < :todayDate ORDER BY date DESC")
-    List<Reservation> getPastReservations(int userId, String todayDate);
+    @Query("SELECT * FROM reservations WHERE userId = :userId AND (date || ' ' || time) < :now ORDER BY date DESC, time DESC")
+    List<Reservation> getPastReservations(int userId, String now);
+
 }

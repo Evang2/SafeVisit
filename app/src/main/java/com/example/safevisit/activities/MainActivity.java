@@ -13,6 +13,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 public class MainActivity extends AppCompatActivity {
 
     BottomNavigationView bottomNavigationView;
+    int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,14 +21,26 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
+
+        // ✅ Get the logged-in userId from LoginActivity
+        userId = getIntent().getIntExtra("userId", -1);
+
+        // ✅ Load HomeFragment with userId by default
+        HomeFragment homeFragment = new HomeFragment();
+        Bundle homeBundle = new Bundle();
+        homeBundle.putInt("userId", userId);
+        homeFragment.setArguments(homeBundle);
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragment_container, new HomeFragment())
+                .replace(R.id.fragment_container, homeFragment)
                 .commit();
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment;
+            Bundle bundle = new Bundle();
+            bundle.putInt("userId", userId);
 
             int id = item.getItemId();
+
             if (id == R.id.homeFragment) {
                 selectedFragment = new HomeFragment();
             } else if (id == R.id.searchFragment) {
@@ -37,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 return false;
             }
+
+            selectedFragment.setArguments(bundle);
 
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, selectedFragment)

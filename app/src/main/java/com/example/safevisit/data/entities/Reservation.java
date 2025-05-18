@@ -25,4 +25,5 @@ public class Reservation {
     public String time;
     public int peopleCount;
     public String qrCode;
+    public String restaurantName;
 }
