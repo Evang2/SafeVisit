@@ -59,7 +59,7 @@ public class ReservationDetailFragment extends Fragment implements OnMapReadyCal
 
         // Fetch weather
         WeatherService weatherService = RetrofitClient.getInstance().create(WeatherService.class);
-        weatherService.getCurrentWeather(latitude, longitude, "581144cd723de4b1455b0a304fa4be2d", "metric")
+        weatherService.getCurrentWeather(latitude, longitude, "OPENWEATHER_API_KEY_HERE", "metric") //change it to your api key
                 .enqueue(new Callback<>() {
                     @Override
                     public void onResponse(@NonNull Call<WeatherResponse> call, @NonNull Response<WeatherResponse> response) {
