@@ -67,7 +67,10 @@
 
 ### or
 - 📱 [Download SafeVisit APK](https://drive.google.com/file/d/1RvTp4ITrbZbnprvU590U40IpjAUcJDz5/view?usp=sharing)
+- or scan the QR Code
+ ![QRCodeAPK](https://github.com/user-attachments/assets/966b9ad8-0c73-4f98-87dd-6141b171b124)
 ---
+
 
 
 ## 📄 License
